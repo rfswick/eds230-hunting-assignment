@@ -1,0 +1,8 @@
+---
+title: "Hunting Assignment Analysis"
+author: "Rachel Swick"
+date: last-modified
+format: html
+---
+
+
