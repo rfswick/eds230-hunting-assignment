@@ -28,16 +28,16 @@ Try different hunting values: which ones give stable prey population?
 ```{r}
 # note the use of with
 # initial conditions
-currpop <- c(prey = 100, pred = 10)
+currpop <- c(prey = 1000, pred = 10)
 
 # time points to see results
 days <- seq(from = 1, to = 100, by = 1)
 
 # 2 years
-years <- seq(from = 1, to = 5*365, by = 1)
+years <- seq(from = 1, to = 2*365, by = 1)
 
 # set parameters
-pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.4, K = 2000, min_prey_hunt = 1000, hunt_rate = 500)
+pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.4, K = 2000, min_prey_hunt = 500, hunt_rate = 125)
 
 # run the model
 res <- ode(func = hunting, y = currpop, times = years, parms = pars)
@@ -56,13 +56,13 @@ p1
 p2 <- ggplot(as.data.frame(res), aes(pred, prey)) +
   geom_point() +
   labs(y = "Prey", x = "Predators")
-p2
+#p2
 
 # To make this easier to understand - maybe
 p2b <- ggplot(as.data.frame(res), aes(pred, prey, col = time)) +
   geom_point() +
   labs(y = "Prey", x = "Predators")
-p2b
+#p2b
 
 #ggarrange(p1, p2b)
 ```
