@@ -28,7 +28,7 @@ Try different hunting values: which ones give stable prey population?
 ```{r}
 # note the use of with
 # initial conditions
-currpop <- c(prey = 100, pred = 1)
+currpop <- c(prey = 100, pred = 10)
 
 # time points to see results
 days <- seq(from = 1, to = 100, by = 1)

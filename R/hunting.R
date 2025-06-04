@@ -11,7 +11,7 @@
 #'  \emph{hunt_rate}
 #'  \emph{min_prey_hunt}
 #'
-#' @return lotvmod returns a list containing the following components
+#' @return hunting returns a list containing the following components
 #' \describe{
 #' \item{dprey}{rate of change of prey populutation}
 #' \item{dpred}{rate of change of preditor populutation}
@@ -22,7 +22,7 @@
 #' @examples
 #' 
 
-lotvmodK_hunt <- function(t, pop, pars) {
+hunting <- function(t, pop, pars) {
   with(as.list(c(pars, pop)), {
     
     # Determine the actual number of prey hunted
