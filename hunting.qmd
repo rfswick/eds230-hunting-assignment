@@ -40,14 +40,14 @@ currpop <- c(prey = 1000, pred = 10)
 years <- seq(from = 1, to = 2*365, by = 1)
 ```
 
-Scenario 1:
-
-- `min_prey_hunt`: 0
-- `hunt_rate`: 50
+Build function to test scenarios:
 
 ```{r}
-# set parameters for scenario 1
-pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.4, K = 2000, min_prey_hunt = 0, hunt_rate = 50)
+
+test_scenarios <- function(min_prey_hunt, hunt_rate) {
+  
+  # set parameters for scenario 1
+pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.4, K = 2000, min_prey_hunt = min_prey_hunt, hunt_rate = hunt_rate)
 
 # run the model
 res <- ode(func = hunting, y = currpop, times = years, parms = pars)
@@ -57,10 +57,21 @@ head(res)
 
 # rearrange for easy plotting
 resl <- as.data.frame(res) %>% pivot_longer(-time, names_to = "animal", values_to = "pop")
-p1 <- ggplot(resl, aes(time, pop, col = animal)) +
+plot <- ggplot(resl, aes(time, pop, col = animal)) +
   geom_line()
 
-p1
+return(plot)
+
+}
+```
+
+Scenario 1:
+
+- `min_prey_hunt`: 0
+- `hunt_rate`: 50
+
+```{r}
+test_scenarios(0, 50)
 ```
 
 Scenario 2:
@@ -69,21 +80,7 @@ Scenario 2:
 - `hunt_rate`: 50
 
 ```{r}
-# set parameters for scenario 2
-pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.4, K = 2000, min_prey_hunt = 100, hunt_rate = 50)
-
-# run the model
-res <- ode(func = hunting, y = currpop, times = years, parms = pars)
-
-# graph the results
-head(res)
-
-# rearrange for easy plotting
-resl <- as.data.frame(res) %>% pivot_longer(-time, names_to = "animal", values_to = "pop")
-p2 <- ggplot(resl, aes(time, pop, col = animal)) +
-  geom_line()
-
-p2
+test_scenarios(100, 50)
 ```
 
 Scenario 3:
@@ -92,21 +89,7 @@ Scenario 3:
 - `hunt_rate`: 50
 
 ```{r}
-# set parameters for scenario 3
-pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.4, K = 2000, min_prey_hunt = 500, hunt_rate = 50)
-
-# run the model
-res <- ode(func = hunting, y = currpop, times = years, parms = pars)
-
-# graph the results
-head(res)
-
-# rearrange for easy plotting
-resl <- as.data.frame(res) %>% pivot_longer(-time, names_to = "animal", values_to = "pop")
-p3 <- ggplot(resl, aes(time, pop, col = animal)) +
-  geom_line()
-
-p3
+test_scenarios(500, 50)
 ```
 
 Scenario 4:
@@ -115,21 +98,7 @@ Scenario 4:
 - `hunt_rate`: 100
 
 ```{r}
-# set parameters for scenario 4
-pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.4, K = 2000, min_prey_hunt = 500, hunt_rate = 100)
-
-# run the model
-res <- ode(func = hunting, y = currpop, times = years, parms = pars)
-
-# graph the results
-head(res)
-
-# rearrange for easy plotting
-resl <- as.data.frame(res) %>% pivot_longer(-time, names_to = "animal", values_to = "pop")
-p4 <- ggplot(resl, aes(time, pop, col = animal)) +
-  geom_line()
-
-p4
+test_scenarios(500, 100)
 ```
 
 Scenario 5:
@@ -138,21 +107,7 @@ Scenario 5:
 - `hunt_rate`: 500
 
 ```{r}
-# set parameters for scenario 5
-pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.4, K = 2000, min_prey_hunt = 500, hunt_rate = 500)
-
-# run the model
-res <- ode(func = hunting, y = currpop, times = years, parms = pars)
-
-# graph the results
-head(res)
-
-# rearrange for easy plotting
-resl <- as.data.frame(res) %>% pivot_longer(-time, names_to = "animal", values_to = "pop")
-p5 <- ggplot(resl, aes(time, pop, col = animal)) +
-  geom_line()
-
-p5
+test_scenarios(500, 500)
 ```
 
 Prey population *stabilizes* after about a year with Scenarios 3 an 4 (`min_prey_hunt` = 500, `hunt_rate` = 50 and `min_prey_hunt` = 500, `hunt_rate` = 100). This shows that `min_prey_hunt` performs best around 25% of carrying capacity, and `hunt_rate` performs well at 10-20% of `min_prey_hunt`.
