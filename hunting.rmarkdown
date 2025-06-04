@@ -6,7 +6,11 @@ editor_options:
   chunk_output_type: console
 ---
 
+
+
 # Hunting Assignment
+
+
 
 ```{r}
 library(sensitivity)
@@ -15,15 +19,23 @@ library(tidyverse)
 library(deSolve)
 ```
 
+
+
 ## Part 1
 
 Include hunting in function:
+
+
 
 ```{r odesen}
 source("R/hunting.R")
 ```
 
+
+
 Try different hunting values: which ones give *stable* prey population?
+
+
 
 ```{r}
 # note the use of with
@@ -63,9 +75,13 @@ p2b <- ggplot(as.data.frame(res), aes(pred, prey, col = time)) +
   geom_point() +
   labs(y = "Prey", x = "Predators")
 #p2b
+
+#ggarrange(p1, p2b)
 ```
 
-We define *stability* as no fluctuations in the prey population. Prey population *stabilizes* after about a year with our chosen parameters. We chose min_prey_hunt (the minimum population to allow hunting) to be 25% of the carrying capacity (500) and hunt_rate to be another 25% of the minimum population (125). We found that the prey population stabilized after about a year, even after changing the min_prey_hunt and hunt_rate to 10% and 50% of the respective values. 
+
+
+We define *stability* as no more fluctuations in the prey population. Prey population stabilizes after about a year with our chosen parameters. We chose min_prey_hunt (the minimum population to allow hunting) to be 25% of the carrying capacity (500) and hunt_rate to be another 25% of the minimum population (125). We found that the prey population stabilized after about a year, even after changing the min_prey_hunt and hunt_rate to 10% and 50% of the respective values. 
 
 
 From Ojas:
@@ -83,6 +99,8 @@ quantify stability:
 ## Part 2
 
 # Sobol Analysis (?)
+
+
 
 ```{r}
 # want to learn about sensitivity to growth rate (r) and carrying capacity
