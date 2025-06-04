@@ -15,29 +15,36 @@ library(tidyverse)
 library(deSolve)
 ```
 
+## Part 1
+
+Include hunting in function:
+
 ```{r odesen}
 source("R/hunting.R")
 ```
 
+Try different hunting values: which ones give stable prey population?
+
 ```{r}
 # note the use of with
 # initial conditions
-currpop <- c(prey = 10, pred = 1)
+currpop <- c(prey = 100, pred = 1)
 
 # time points to see results
 days <- seq(from = 1, to = 100, by = 1)
 
-# set parameters
-pars <- c(rprey = 0.5, alpha = 0.3, eff = 0.2, pmort = 0.2, K = 100)
+# 2 years
+years <- seq(from = 1, to = 5*365, by = 1)
 
-min_prey_hunt <- 500
-hunt_rate <- 0.5
+# set parameters
+pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.4, K = 2000, min_prey_hunt = 1000, hunt_rate = 500)
 
 # run the model
-res <- ode(func = lotvmodK_hunt, y = currpop, times = days, parms = pars)
+res <- ode(func = hunting, y = currpop, times = years, parms = pars)
 
 # graph the results
 head(res)
+
 # rearrange for easy plotting
 resl <- as.data.frame(res) %>% pivot_longer(-time, names_to = "animal", values_to = "pop")
 p1 <- ggplot(resl, aes(time, pop, col = animal)) +
@@ -57,33 +64,50 @@ p2b <- ggplot(as.data.frame(res), aes(pred, prey, col = time)) +
   labs(y = "Prey", x = "Predators")
 p2b
 
-ggarrange(p1, p2b)
+#ggarrange(p1, p2b)
 ```
 
+Prey population stabilizes after about a year with our chosen parameters. We chose min_prey_hunt (the minimum population to allow hunting) to be 25% of the carrying capacity (500) and hunt_rate to be another 25% of the minimum population (125). We found that the prey population stabilized after about a year, even after changing the min_prey_hunt and hunt_rate to 10% and 50% of the respective values. 
 
+From Ojas:
+
+prey is above .... 
+
+in our model, this hunting rate works BUT... doesnt make sense because...
+
+
+another function to say at a certain time we want to be above a certain value
+
+quantify stability:
+
+
+## Part 2
+
+# Sobol Analysis (?)
 
 ```{r}
 # want to learn about sensitivity to growth rate (r) and carrying capacity
 # set the number of parameters
 np <- 200
-K <- rnorm(mean = 2000, sd = 20, n = np)
-rprey <- runif(min = 0.9, max = 1, n = np)
-alpha <- runif(min = 0, max = 0.02, n = np)
-eff <- rnorm(mean = 0.6, sd = 0.01, n = np)
-pmort <- runif(min = 0.35, max = 0.45, n = np)
-min_prey_hunt <- 500
-hunt_rate <- 0.5
+K <- 2000
+rprey <- 0.95
+alpha <- 0.01
+eff <- 0.6
+pmort <- 0.4
+min_prey_hunt <- rnorm(mean = 1000, sd = 0.1, n = np)
+hunt_rate <- rnorm(mean = 500, sd = 0.1, n = np)
 
 X1 <- cbind.data.frame(rprey = rprey, K = K, alpha = alpha, eff = eff, pmort = pmort, min_prey_hunt = min_prey_hunt, hunt_rate = hunt_rate)
 
 # repeat to get our second set of samples
 np <- 200
-K <- rnorm(mean = 2000, sd = 20, n = np)
-rprey <- runif(min = 0.9, max = 1, n = np)
-alpha <- runif(min = 0, max = 0.02, n = np)
-eff <- rnorm(mean = 0.6, sd = 0.01, n = np)
-pmort <- runif(min = 0.35, max = 0.45, n = np)
-min_prey_hunt <- 500
+K <- 2000
+rprey <- 0.95
+alpha <- 0.01
+eff <- 0.6
+pmort <- 0.4
+min_prey_hunt <- rnorm(mean = 1000, sd = 0.1, n = np)
+hunt_rate <- rnorm(mean = 500, sd = 0.1, n = np)
 
 X2 <- cbind.data.frame(rprey = rprey, K = K, alpha = alpha, eff = eff, pmort = pmort, min_prey_hunt = min_prey_hunt, hunt_rate = hunt_rate)
 
@@ -110,13 +134,12 @@ p_wrapper <- function(rprey, alpha, eff, pmort, K, currpop, min_prey_hunt, hunt_
   return(metrics)
 }
 
-currpop <- c(prey = 1, pred = 1)
+currpop <- c(prey = 1000, pred = 10)
 days <- seq(from = 1, to = 500)
-allresults <- as.data.frame(sens_PP$X) %>% pmap(p_wrapper, currpop = currpop, days = days, func = lotvmodK_hunt)
+allresults <- as.data.frame(sens_PP$X) %>% pmap(p_wrapper, currpop = currpop, days = days, func = hunting)
 
 # take results back to unlisted form
 allres <- allresults %>% map_dfr(`[`, c("maxprey", "minprey", "maxpred", "minpred"))
-
 
 # range of response across parameter uncertainty
 allresl <- allres %>% gather(key = "metric", value = "pop")
@@ -142,205 +165,3 @@ sens_PP_maxprey$T
 
 ```
 
-```{r}
-# want to learn about sensitivity to growth rate (r) and carrying capacity
-# set the number of parameters
-np <- 200
-K <- rnorm(mean = 2000, sd = 20, n = np)
-rprey <- runif(min = 0.01, max = 0.3, n = np)
-alpha <- runif(min = 0.1, max = 0.4, n = np)
-eff <- rnorm(mean = 0.3, sd = 0.01, n = np)
-pmort <- runif(min = 0.01, max = 0.45, n = np)
-
-X1 <- cbind.data.frame(rprey = rprey, K = K, alpha = alpha, eff = eff, pmort = pmort)
-
-# repeat to get our second set of samples
-np <- 200
-K <- rnorm(mean = 150, sd = 20, n = np)
-rprey <- runif(min = 0.01, max = 0.3, n = np)
-alpha <- runif(min = 0.1, max = 0.4, n = np)
-eff <- rnorm(mean = 0.3, sd = 0.01, n = np)
-pmort <- runif(min = 0.01, max = 0.45, n = np)
-
-X2 <- cbind.data.frame(rprey = rprey, K = K, alpha = alpha, eff = eff, pmort = pmort)
-
-
-# create our sobel object and get sets ofparameters for running the model
-sens_PP <- sobolSalt(model = NULL, X1, X2, nboot = 300)
-
-# name parameter sets...
-colnames(sens_PP$X) <- c("rprey", "K", "alpha", "eff", "pmort")
-
-# our metrics
-# lets say we  want the maximum and minimum  of both predictor and prey
-
-compute_metrics <- function(result) {
-  maxprey <- max(result$prey)
-  maxpred <- max(result$pred)
-  minprey <- min(result$prey)
-  minpred <- min(result$pred)
-  return(list(maxprey = maxprey, minprey = minprey, maxpred = maxpred, minpred = minpred))
-}
-
-# build a wrapper function
-p_wrapper <- function(rprey, alpha, eff, pmort, K, currpop, days, func) {
-  parms <- list(rprey = rprey, alpha = alpha, eff = eff, pmort = pmort, K = K)
-  result <- ode(y = currpop, times = days, func = func, parms = parms)
-  colnames(result) <- c("time", "prey", "pred")
-  # get metrics
-  metrics <- compute_metrics(as.data.frame(result))
-  return(metrics)
-}
-
-```
-
-## Now run wrapper for all parameters {.scrollable}
-
--   graph
--   sobol indices
-
-```{r odesen2}
-# run our model for all parameters and extract the results
-currpop <- c(prey = 1, pred = 1)
-days <- seq(from = 1, to = 500)
-allresults <- as.data.frame(sens_PP$X) %>% pmap(p_wrapper, currpop = currpop, days = days, func = lotvmodK)
-
-# take results back to unlisted form
-allres <- allresults %>% map_dfr(`[`, c("maxprey", "minprey", "maxpred", "minpred"))
-
-
-# range of response across parameter uncertainty
-allresl <- allres %>% gather(key = "metric", value = "pop")
-ggplot(allresl, aes(metric, pop)) +
-  geom_boxplot()
-
-# dealing with different scales
-ggplot(allresl, aes(metric, pop, col = metric)) +
-  geom_boxplot() +
-  facet_wrap(~metric, scales = "free")
-# plot cummulative densities
-
-ggplot(allresl, aes(pop, col = metric)) +
-  stat_ecdf(geom = "line") +
-  facet_wrap(~metric, scales = "free")
-
-# create sobol indices for Max Prey
-sens_PP_maxprey <- sens_PP %>% sensitivity::tell(y = allres$maxprey)
-rownames(sens_PP_maxprey$S) <- c("rprey", "K", "alpha", "eff", "pmort")
-sens_PP_maxprey$S
-rownames(sens_PP_maxprey$T) <- c("rprey", "K", "alpha", "eff", "pmort")
-sens_PP_maxprey$T
-```
-
-# Think about how to compute for
-
-```         
--   maximum prey
--   minimum prey
--   maximum predator
--   minimum predator
-```
-
-# Model with varyng carrying capacity
-
-```{r, varyK}
-source(here("R/lotvmodvaryingK.R"))
-lotvmodKvar
-
-
-
-
-# initial conditions
-currpop <- c(prey = 10, pred = 1)
-
-
-
-# set parameters and inputs
-# read in air temperature time series
-airT = readRDS(here("Data/Tavg_Rattlesnake.RDS"))
-head(airT)
-#note if you were interested in specific periods you might want to subset this data
-
-# time points to see results
-days <- seq(from = 1, to = length(airT$tavg), by = 1)
-
-# note you have to use a list now because elements are of a different length
-pars <- list(rprey = 0.5, alpha = 0.3, eff = 0.2, pmort = 0.2, KO= 100, Topt=18, Ksen=0.3, airT=airT$tavg)
-
-# run the model
-res <- ode(func = lotvmodKvar, y = currpop, times = days, parms = pars)
-# graph the results
-head(res)
-# rearrange for easy plotting
-resl <- as.data.frame(res) %>% pivot_longer(-time, names_to = "animal", values_to = "pop")
-p1 <- ggplot(resl, aes(time, pop, col = animal)) +
-  geom_line()
-
-p1
-
-
-p2 <- ggplot(as.data.frame(res), aes(pred, prey)) +
-  geom_point() +
-  labs(y = "Prey", x = "Predators")
-p2
-
-# To make this easier to understand - maybe
-p2b <- ggplot(as.data.frame(res), aes(pred, prey, col = time)) +
-  geom_point() +
-  labs(y = "Prey", x = "Predators")
-p2b
-
-ggarrange(p1, p2b)
-```
-
-# Code for model with air temperature
-
-```{r, varyK}
-source(here("R/lotvmodvaryingK.R"))
-lotvmodKvar
-
-
-
-
-# initial conditions
-currpop <- c(prey = 10, pred = 1)
-
-
-
-# set parameters and inputs
-# read in air temperature time series
-airT = readRDS(here("Data/Tavg_Rattlesnake.RDS"))
-head(airT)
-#note if you were interested in specific periods you might want to subset this data
-
-# time points to see results
-days <- seq(from = 1, to = length(airT$tavg), by = 1)
-
-# note you have to use a list now because elements are of a different length
-pars <- list(rprey = 0.5, alpha = 0.3, eff = 0.2, pmort = 0.2, KO= 100, Topt=18, Ksen=0.3, airT=airT$tavg)
-
-# run the model
-res <- ode(func = lotvmodKvar, y = currpop, times = days, parms = pars)
-# graph the results
-head(res)
-# rearrange for easy plotting
-resl <- as.data.frame(res) %>% pivot_longer(-time, names_to = "animal", values_to = "pop")
-p1 <- ggplot(resl, aes(time, pop, col = animal)) +
-  geom_line()
-
-p1
-
-
-p2 <- ggplot(as.data.frame(res), aes(pred, prey)) +
-  geom_point() +
-  labs(y = "Prey", x = "Predators")
-p2
-
-# To make this easier to understand - maybe
-p2b <- ggplot(as.data.frame(res), aes(pred, prey, col = time)) +
-  geom_point() +
-  labs(y = "Prey", x = "Predators")
-p2b
-
-ggarrange(p1, p2b)
-```
